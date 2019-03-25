@@ -653,6 +653,8 @@
                                     <userDefinedRuntimeAttribute type="number" keyPath="circleInitialAngle">
                                         <real key="value" value="1.5700000000000001"/>
                                     </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="boolean" keyPath="rotatesThumb" value="YES"/>
+                                    <userDefinedRuntimeAttribute type="image" keyPath="endThumbImage" value="arrow_thumb"/>
                                 </userDefinedRuntimeAttributes>
                             </view>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" translatesAutoresizingMaskIntoConstraints="NO" id="KXq-jq-I0O">
@@ -743,6 +745,7 @@
     </scenes>
     <resources>
         <image name="Hours" width="219" height="219"/>
+        <image name="arrow_thumb" width="36" height="36"/>
         <image name="first" width="30" height="30"/>
         <image name="ic_bedtime" width="17" height="19"/>
         <image name="ic_wake" width="13" height="16"/>
