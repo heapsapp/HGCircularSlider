@@ -27,7 +27,7 @@ extension CircularSlider {
         
         UIGraphicsPushContext(context)
         context.beginPath()
-        
+
         context.setLineWidth(lineWidth)
         context.setLineCap(CGLineCap.round)
         context.addArc(center: origin, radius: circle.radius, startAngle: arc.startAngle, endAngle: arc.endAngle, clockwise: false)
@@ -35,6 +35,34 @@ extension CircularSlider {
         context.drawPath(using: mode)
         
         UIGraphicsPopContext()
+    }
+    
+    internal static func drawArc(withArc arc: Arc, lineWidth: CGFloat, inLayer layer: CALayer) {
+        guard #available(iOS 12.0, *) else {
+            return
+        }
+        let existingLayer = layer.sublayers?.compactMap { $0 as? CAGradientLayer }.first
+        let gradientLayer = existingLayer ?? CAGradientLayer()
+        if existingLayer == nil {
+            layer.insertSublayer(gradientLayer, at: 0)
+        }
+        gradientLayer.type = .conic
+        gradientLayer.startPoint = CGPoint(x: 0.5, y: 0.5)
+        gradientLayer.endPoint = CGPoint(x: 0.5, y: 0)
+        let bounds = layer.bounds //CGRect(x: 0, y: 0, width: arc.circle.radius*2, height: arc.circle.radius*2)
+        gradientLayer.frame = bounds
+        let startColor: UIColor = .white
+        let endColor:   UIColor = .blue
+        gradientLayer.colors = [startColor, endColor].map { $0.cgColor }
+        
+        let path = UIBezierPath(arcCenter: arc.circle.origin, radius: arc.circle.radius, startAngle: arc.startAngle, endAngle: arc.endAngle, clockwise: true)
+        let existingMask = gradientLayer.mask as? CAShapeLayer
+        let mask = existingMask ?? CAShapeLayer()
+        mask.fillColor = UIColor.clear.cgColor
+        mask.strokeColor = UIColor.white.cgColor
+        mask.lineWidth = lineWidth
+        mask.path = path.cgPath
+        gradientLayer.mask = mask
     }
     
     /**
@@ -82,7 +110,8 @@ extension CircularSlider {
         // fill Arc
         CircularSlider.drawDisk(withArc: arc, inContext: context)
         // stroke Arc
-        CircularSlider.drawArc(withArc: arc, lineWidth: lineWidth, mode: .stroke, inContext: context)
+//        CircularSlider.drawArc(withArc: arc, lineWidth: lineWidth, mode: .stroke, inContext: context)
+        CircularSlider.drawArc(withArc: arc, lineWidth: lineWidth, inLayer: self.layer)
     }
 
     internal func drawShadowArc(fromAngle startAngle: CGFloat, toAngle endAngle: CGFloat, inContext context: CGContext) {
