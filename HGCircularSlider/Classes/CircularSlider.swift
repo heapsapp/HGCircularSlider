@@ -41,11 +41,34 @@ open class CircularSlider: UIControl {
     open var trackFillColor: UIColor = .clear
     
     /**
+     * The image masked by the 1st part of the unselected track portion. (outside start and end values)
+     * The default value of this property is nil.
+     * If trackFillImageEnd is not set, trackFillImageStart will be used for the entire path.
+     */
+    @IBInspectable
+    open var trackFillImageStart: UIImage?
+    
+    /**
+     * The image masked by the 2nd part of th unselected track portion. (outside start and end values)
+     * The default value of this property is nil.
+     * If trackFillImageStart is not set, trackFillImageEnd will be ignored.
+     */
+    @IBInspectable
+    open var trackFillImageEnd: UIImage?
+    
+    /**
      * The color shown for the unselected track portion. (outside start and end values)
      * The default value of this property is the white color.
      */
     @IBInspectable
     open var trackColor: UIColor = .white
+    
+    /**
+     * The image masked by the unselected track portion. (outside start and end values)
+     * The default value of this property is nil.
+     */
+    @IBInspectable
+    open var trackBackgroundImage: UIImage?
     
     /**
      * The width of the circular line
@@ -215,7 +238,7 @@ open class CircularSlider: UIControl {
             // the minimum between the height/2 and the width/2
             var radius =  min(bounds.center.x, bounds.center.y)
             // all elements should be inside the view rect, for that we should subtract the highest value between the radius of thumb and the line width
-            radius -= max(lineWidth, (thumbRadius + thumbLineWidth))
+            radius -= max(lineWidth/2, (thumbRadius + thumbLineWidth)/2)
             return radius
         }
     }

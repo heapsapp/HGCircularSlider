@@ -37,32 +37,45 @@ extension CircularSlider {
         UIGraphicsPopContext()
     }
     
-    internal static func drawArc(withArc arc: Arc, lineWidth: CGFloat, inLayer layer: CALayer) {
-        guard #available(iOS 12.0, *) else {
+    internal class func draw(startImage: UIImage, endImage: UIImage?, maskWith arc: Arc, lineWidth: CGFloat = 2, inContext context: CGContext) {
+        
+        context.saveGState()
+        
+        let startPath = UIBezierPath(arcCenter: arc.circle.origin, radius: arc.circle.radius, startAngle: arc.startAngle, endAngle: CGFloat.minimum(arc.endAngle, CGFloat(2*Double.pi)), clockwise: true)
+        let startContainerPath = CGPath(__byStroking: startPath.cgPath, transform: nil, lineWidth: CGFloat(lineWidth), lineCap: .round, lineJoin: CGLineJoin.round, miterLimit: lineWidth)
+        if let startContainerPath = startContainerPath {
+            context.addPath(startContainerPath)
+        }
+        context.clip()
+        
+        let radius = arc.circle.radius
+        let size = radius*2 + lineWidth
+        let bounds = CGRect(x: 0, y: 0, width: size, height: size)
+        
+        if let image = startImage.cgImage {
+            context.draw(image, in: bounds)
+        }
+        
+        context.restoreGState()
+        
+        guard arc.endAngle >= CGFloat(2*Double.pi) else {
             return
         }
-        let existingLayer = layer.sublayers?.compactMap { $0 as? CAGradientLayer }.first
-        let gradientLayer = existingLayer ?? CAGradientLayer()
-        if existingLayer == nil {
-            layer.insertSublayer(gradientLayer, at: 0)
-        }
-        gradientLayer.type = .conic
-        gradientLayer.startPoint = CGPoint(x: 0.5, y: 0.5)
-        gradientLayer.endPoint = CGPoint(x: 0.5, y: 0)
-        let bounds = layer.bounds //CGRect(x: 0, y: 0, width: arc.circle.radius*2, height: arc.circle.radius*2)
-        gradientLayer.frame = bounds
-        let startColor: UIColor = .white
-        let endColor:   UIColor = .blue
-        gradientLayer.colors = [startColor, endColor].map { $0.cgColor }
         
-        let path = UIBezierPath(arcCenter: arc.circle.origin, radius: arc.circle.radius, startAngle: arc.startAngle, endAngle: arc.endAngle, clockwise: true)
-        let existingMask = gradientLayer.mask as? CAShapeLayer
-        let mask = existingMask ?? CAShapeLayer()
-        mask.fillColor = UIColor.clear.cgColor
-        mask.strokeColor = UIColor.white.cgColor
-        mask.lineWidth = lineWidth
-        mask.path = path.cgPath
-        gradientLayer.mask = mask
+        context.saveGState()
+        
+        let path = UIBezierPath(arcCenter: arc.circle.origin, radius: arc.circle.radius, startAngle: CGFloat.maximum(CGFloat(2*Double.pi), arc.startAngle), endAngle: arc.endAngle, clockwise: true)
+        let containerPath = CGPath(__byStroking: path.cgPath, transform: nil, lineWidth: CGFloat(lineWidth), lineCap: .round, lineJoin: CGLineJoin.round, miterLimit: lineWidth)
+        if let containerPath = containerPath {
+            context.addPath(containerPath)
+        }
+        context.clip()
+        
+        if let image = endImage?.cgImage ?? startImage.cgImage {
+            context.draw(image, in: bounds)
+        }
+        
+        context.restoreGState()
     }
     
     /**
@@ -96,7 +109,11 @@ extension CircularSlider {
 
         let circle = Circle(origin: bounds.center, radius: self.radius)
         let sliderArc = Arc(circle: circle, startAngle: CircularSliderHelper.circleMinValue, endAngle: CircularSliderHelper.circleMaxValue)
-        CircularSlider.drawArc(withArc: sliderArc, lineWidth: backtrackLineWidth, inContext: context)
+        if let trackBackgroundImage = trackBackgroundImage {
+            CircularSlider.draw(startImage: trackBackgroundImage, endImage: nil, maskWith: sliderArc, lineWidth: backtrackLineWidth, inContext: context)
+        } else {
+            CircularSlider.drawArc(withArc: sliderArc, lineWidth: backtrackLineWidth, inContext: context)
+        }
     }
 
     /// draw Filled arc between start an end angles
@@ -110,8 +127,11 @@ extension CircularSlider {
         // fill Arc
         CircularSlider.drawDisk(withArc: arc, inContext: context)
         // stroke Arc
-//        CircularSlider.drawArc(withArc: arc, lineWidth: lineWidth, mode: .stroke, inContext: context)
-        CircularSlider.drawArc(withArc: arc, lineWidth: lineWidth, inLayer: self.layer)
+        if let trackFillImageStart = trackFillImageStart {
+            CircularSlider.draw(startImage: trackFillImageStart, endImage: trackFillImageEnd, maskWith: arc, lineWidth: lineWidth, inContext: context)
+        } else {
+            CircularSlider.drawArc(withArc: arc, lineWidth: lineWidth, mode: .stroke, inContext: context)
+        }
     }
 
     internal func drawShadowArc(fromAngle startAngle: CGFloat, toAngle endAngle: CGFloat, inContext context: CGContext) {

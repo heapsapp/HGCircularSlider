@@ -192,9 +192,13 @@ internal class CircularSliderHelper {
     internal static func scaleValue(_ value: CGFloat, fromInterval source: Interval, toInterval destination: Interval) -> CGFloat {
         let sourceRange = (source.max - source.min) / CGFloat(source.rounds)
         let destinationRange = (destination.max - destination.min) / CGFloat(destination.rounds)
-        let scaledValue = source.min + (value - source.min).truncatingRemainder(dividingBy: sourceRange)
+        let scaledValue: CGFloat
+        if value != sourceRange {
+            scaledValue = source.min + (value - source.min).truncatingRemainder(dividingBy: sourceRange)
+        } else {
+            scaledValue = value
+        }
         let newValue =  (((scaledValue - source.min) * destinationRange) / sourceRange) + destination.min
-        
         return  newValue
     }
     
