@@ -175,8 +175,27 @@ open class CircularSlider: UIControl {
     @IBInspectable
     open var minimumValue: CGFloat = 0.0 {
         didSet {
+            if minimumSelectableValue < minimumValue {
+                minimumSelectableValue = minimumValue
+            }
             if endPointValue < minimumValue {
                 endPointValue = minimumValue
+            }
+        }
+    }
+    
+    /**
+     * The minimum value of the receiver.
+     *
+     * If you change the value of this property, and the end value of the receiver is below the new minimum, the end point value is adjusted to match the new minimum value automatically.
+     * The default value of this property is 0.0.
+     */
+    @IBInspectable
+    open var minimumSelectableValue: CGFloat = 0.0 {
+        didSet {
+            assert(minimumSelectableValue >= minimumValue, "Minimum selectable value has to be less than or equal to minimum value.")
+            if endPointValue < minimumSelectableValue {
+                endPointValue = minimumSelectableValue
             }
         }
     }
@@ -360,7 +379,7 @@ open class CircularSlider: UIControl {
         
         let newValue = oldValue + deltaValue
         
-        if !(minimumValue...maximumValue ~= newValue) {
+        if !(minimumSelectableValue...maximumValue ~= newValue) {
             return oldValue
         }
         
