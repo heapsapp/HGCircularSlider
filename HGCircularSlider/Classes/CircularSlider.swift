@@ -206,6 +206,9 @@ open class CircularSlider: UIControl {
         }
     }
     
+    @IBInspectable
+    open var step: CGFloat = 0
+    
     /**
      * The value of the endThumb (changed when the user change the position of the end thumb)
      *
@@ -333,8 +336,11 @@ open class CircularSlider: UIControl {
         let startPoint = centerPoint.rotate(around: bounds.center, with: circleInitialAngle)
         let value = newValue(from: endPointValue, touch: touchPosition, start: startPoint)
         
+        let oldValue = endPointValue
         endPointValue = value
-        sendActions(for: .valueChanged)
+        if value != oldValue {
+            sendActions(for: .valueChanged)
+        }
         
         return true
     }
@@ -357,9 +363,14 @@ open class CircularSlider: UIControl {
         if !(minimumValue...maximumValue ~= newValue) {
             return oldValue
         }
-        return newValue
+        
+        if step <= 0 {
+            return newValue
+        }
+        
+        let newStep = (newValue/step).rounded(.toNearestOrAwayFromZero)
+        
+        return newStep*step
     }
-    
-    
     
 }
